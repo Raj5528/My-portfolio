@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Raj Acherjee | DevOps &amp; Cloud Intern</title>
+<meta name="description" content="Raj Acherjee, final-year B.Tech CSE student and DevOps intern candidate. CI/CD, AWS, Linux servers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!--
+DESIGN CONCEPT: "Run #2027". The whole portfolio is a CI/CD pipeline run, the thing Raj actually builds.
+Signature element: a live pipeline in the hero (push, build, test, deploy) that runs on load or on click,
+ending in a before/after bar of his real result: deploys cut from 15-20 minutes to 2-3 minutes.
+Sections are pipeline jobs; navigation is a sticky row of stage pills that turn green as you scroll past.
+Projects are expandable build logs, skills are a "kubectl get" style status table, contact is a deploy target.
+Type: Bricolage Grotesque for personality, IBM Plex Mono only for log output. Palette: pastel mint, lavender, peach, sky.
+-->
+<style>
+:root{
+  --bg:#f5f4f2; --surface:#ffffff; --ink:#1a1a1a; --muted:#454545; --line:#a3a29d;
+  --mint:#b2e4c8; --mint-ink:#0f4a2c; --lav:#e6caf3; --lav-ink:#5a1f78; --peach:#ffcbae; --peach-ink:#73310f; --sky:#f7c8dc; --sky-ink:#6e1a41;
+  --log:#eae9e6;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#1a1a1a; --surface:#262626; --ink:#f5f4f2; --muted:#c8c7c3; --line:#6a6965;
+    --mint:#2c4a3d; --mint-ink:#a9e6c6; --lav:#4b2f5c; --lav-ink:#ebcdff; --peach:#4f382d; --peach-ink:#ffcfb4; --sky:#5a2a40; --sky-ink:#ffc9df;
+    --log:#2f2f2e;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1a1a1a; --surface:#262626; --ink:#f5f4f2; --muted:#c8c7c3; --line:#6a6965;
+  --mint:#2c4a3d; --mint-ink:#a9e6c6; --lav:#4b2f5c; --lav-ink:#ebcdff; --peach:#4f382d; --peach-ink:#ffcfb4; --sky:#5a2a40; --sky-ink:#ffc9df;
+  --log:#2f2f2e;
+}
+html{scroll-behavior:smooth;scroll-padding-top:calc(env(safe-area-inset-top,0px) + 72px)}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,sans-serif;font-size:1.05rem;line-height:1.6}
+a{color:inherit}
+:focus-visible{outline:3px solid var(--lav-ink);outline-offset:3px;border-radius:6px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.88rem}
+.wrap{max-width:980px;margin:0 auto;padding:0 20px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--surface);padding:8px 14px;border-radius:8px;z-index:50}
+.skip:focus{left:12px}
+
+/* stage nav */
+header.bar{position:sticky;top:0;z-index:20;background:var(--bg);padding-top:env(safe-area-inset-top,0px);border-bottom:1px solid var(--line)}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:30}
+.bar .wrap{display:flex;align-items:center;gap:14px;height:60px}
+.brand{font-weight:800;text-decoration:none;white-space:nowrap}
+nav ol{list-style:none;margin:0;padding:0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}
+nav ol::-webkit-scrollbar{display:none}
+nav a{display:flex;align-items:center;gap:8px;text-decoration:none;white-space:nowrap;padding:7px 14px;border-radius:99px;background:var(--surface);border:1px solid var(--line);font-size:.92rem;transition:background .3s}
+nav a i{width:10px;height:10px;border-radius:50%;background:var(--line);transition:background .3s}
+nav a.done i{background:var(--mint-ink)}
+nav a.on{background:var(--lav);border-color:transparent}
+nav a.on i{background:var(--lav-ink)}
+
+/* hero */
+.hero{padding:56px 0 40px}
+h1{font-size:clamp(2.6rem,9vw,5.6rem);line-height:.98;letter-spacing:-.03em;font-weight:800;margin:0 0 18px}
+.lead{font-size:clamp(1.1rem,2.6vw,1.4rem);max-width:34ch;margin:0 0 30px;color:var(--muted)}
+.pipe{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:22px}
+.pipe-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.pipe-top b{font-weight:600}
+button{font:inherit;cursor:pointer}
+.run{background:var(--mint);color:var(--mint-ink);border:0;border-radius:99px;padding:10px 20px;font-weight:600;min-height:44px}
+.run:disabled{opacity:.6;cursor:default}
+.stages{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;position:relative}
+.stage{background:var(--log);border-radius:14px;padding:14px 12px;border:2px solid var(--line);transition:background .4s,border-color .4s}
+.stage strong{display:block;font-weight:600}
+.stage span{display:block;color:var(--muted);font-size:.85rem}
+.stage em{font-style:normal;display:block;margin-top:8px;font-size:.82rem;color:var(--muted)}
+.stage.run-now{background:var(--sky);border-color:var(--sky-ink)}
+.stage.pass{border-color:var(--mint-ink)}
+.stage.run-now em{animation:blink 1s infinite}
+.stage.pass{background:var(--mint)}
+.stage.pass em{color:var(--mint-ink)}
+@keyframes blink{50%{opacity:.35}}
+.result{margin-top:20px;display:grid;gap:12px}
+.row{display:grid;grid-template-columns:96px 1fr;align-items:center;gap:12px}
+.track{background:var(--log);border-radius:99px;height:34px;overflow:hidden}
+.fill{height:100%;border-radius:99px;display:flex;align-items:center;padding:0 14px;font-weight:600;width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1);white-space:nowrap;overflow:hidden}
+.fill.before{background:var(--peach);color:var(--peach-ink)}
+.fill.after{background:var(--mint);color:var(--mint-ink)}
+.result.show .before{width:100%}
+.result.show .after{width:16%;min-width:112px}
+.note{color:var(--muted);font-size:.92rem;margin:4px 0 0}
+
+/* sections */
+section{padding:56px 0}
+h2{font-size:clamp(1.8rem,5vw,2.8rem);letter-spacing:-.02em;line-height:1.1;margin:0 0 8px}
+.sub{color:var(--muted);margin:0 0 28px;max-width:52ch}
+details{background:var(--surface);border:1px solid var(--line);border-radius:18px;margin-bottom:14px;overflow:hidden}
+summary{list-style:none;cursor:pointer;padding:20px 22px;display:flex;gap:16px;align-items:flex-start;justify-content:space-between;min-height:44px}
+summary::-webkit-details-marker{display:none}
+summary h3{margin:0 0 4px;font-size:1.3rem;line-height:1.25}
+summary p{margin:0;color:var(--muted);font-size:.95rem}
+.chev{flex:none;width:34px;height:34px;border-radius:50%;background:var(--lav);color:var(--lav-ink);display:grid;place-items:center;transition:transform .3s;font-weight:600}
+details[open] .chev{transform:rotate(45deg)}
+.log{background:var(--log);margin:0 14px 14px;border-radius:12px;padding:16px 18px;list-style:none}
+.log li{padding:5px 0 5px 22px;position:relative}
+.log li::before{content:"\2713";position:absolute;left:0;color:var(--mint-ink);font-weight:600}
+.tags{display:flex;flex-wrap:wrap;gap:8px;margin:0 22px 18px;padding:0;list-style:none}
+.tags li{background:var(--sky);color:var(--sky-ink);border-radius:99px;padding:3px 12px;font-size:.85rem}
+.p2 .tags li{background:var(--peach);color:var(--peach-ink)}
+.p3 .tags li{background:var(--lav);color:var(--lav-ink)}
+
+.table{background:var(--surface);border:1px solid var(--line);border-radius:18px;overflow:hidden}
+.table .head{padding:14px 22px;background:var(--log);border-bottom:1px solid var(--line)}
+.trow{display:grid;grid-template-columns:170px 1fr;gap:14px;padding:16px 22px;border-bottom:1px solid var(--line)}
+.trow:last-child{border-bottom:0}
+.trow h3{margin:0;font-size:1rem;font-weight:600}
+.pods{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
+.pods li{display:flex;align-items:center;gap:7px;background:var(--log);border:1px solid var(--line);border-radius:10px;padding:5px 11px;font-size:.92rem}
+.pods li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--mint-ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px}
+.card.m{background:var(--mint);border-color:var(--mint-ink)}
+.card.l{background:var(--lav);border-color:var(--lav-ink)}
+.card h3{margin:0 0 10px;font-size:1.15rem}
+.card ul{margin:0;padding-left:20px}
+.card li{margin:6px 0}
+.big{font-size:2.4rem;font-weight:800;line-height:1;margin:0 0 6px}
+
+.deploy{background:var(--lav);border-radius:28px;padding:clamp(24px,5vw,48px)}
+.deploy h2{color:var(--lav-ink)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin:22px 0}
+.btn{display:inline-flex;align-items:center;min-height:46px;padding:0 22px;border-radius:99px;font-weight:600;text-decoration:none;border:2px solid var(--lav-ink);color:var(--lav-ink);background:transparent}
+.btn.solid{background:var(--lav-ink);color:var(--lav)}
+.btn:hover{transform:translateY(-2px)}
+.btn{transition:transform .2s}
+.term{background:var(--surface);color:var(--ink);border-radius:14px;padding:16px 18px;overflow-x:auto}
+.term p{margin:2px 0;white-space:nowrap}
+footer{padding:30px 0 40px;color:var(--muted);text-align:center;font-size:.92rem}
+
+@media (max-width:760px){
+  .stages{grid-template-columns:1fr 1fr}
+  .trow{grid-template-columns:1fr;gap:8px}
+  .two{grid-template-columns:1fr}
+  .brand{display:none}
+  .row{grid-template-columns:1fr;gap:6px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="bar">
+  <div class="wrap">
+    <a class="brand" href="#push">raj/portfolio</a>
+    <nav aria-label="Pipeline stages">
+      <ol>
+        <li><a href="#push" class="on"><i></i>Push</a></li>
+        <li><a href="#build"><i></i>Build</a></li>
+        <li><a href="#test"><i></i>Test</a></li>
+        <li><a href="#proof"><i></i>Proof</a></li>
+        <li><a href="#deploy"><i></i>Deploy</a></li>
+      </ol>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+<section class="hero" id="push" data-stage>
+  <div class="wrap">
+    <h1>Raj Acherjee</h1>
+    <p class="lead">Final-year computer science student who ships code from commit to server, and is looking for a DevOps internship.</p>
+
+    <div class="pipe" aria-labelledby="pipe-title">
+      <div class="pipe-top">
+        <b id="pipe-title" class="mono">Pipeline: MERN Travel &amp; Tours, backend release</b>
+        <button class="run" id="run" type="button">Run pipeline</button>
+      </div>
+      <ol class="stages" id="stages">
+        <li class="stage"><strong>Push</strong><span>Code to GitHub</span><em class="mono">waiting</em></li>
+        <li class="stage"><strong>Runner</strong><span>Self-hosted GitHub Actions</span><em class="mono">waiting</em></li>
+        <li class="stage"><strong>Serve</strong><span>PM2 behind Nginx</span><em class="mono">waiting</em></li>
+        <li class="stage"><strong>Live</strong><span>Ubuntu server</span><em class="mono">waiting</em></li>
+      </ol>
+      <div class="result" id="result" aria-live="polite">
+        <div class="row"><span>Before</span><div class="track"><div class="fill before">15-20 min</div></div></div>
+        <div class="row"><span>With my pipeline</span><div class="track"><div class="fill after">2-3 min</div></div></div>
+        <p class="note">Automated backend releases cut deployment time from 15-20 minutes to 2-3 minutes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="build" data-stage>
+  <div class="wrap">
+    <h2>Build logs</h2>
+    <p class="sub">Three projects, opened like job logs. Tap one to see what ran.</p>
+
+    <details open>
+      <summary><div><h3>Cloud Security Monitoring Dashboard</h3><p>Coder Roots training project, AWS</p></div><span class="chev" aria-hidden="true">+</span></summary>
+      <ul class="log">
+        <li>Engineered a decentralized security monitoring platform on AWS that detects unauthorized access, suspicious login activity, and configuration changes.</li>
+        <li>Connected CloudWatch, CloudTrail, Lambda, IAM, DynamoDB, S3, and SNS to collect events, process findings, and store results.</li>
+        <li>Sent email and SMS alerts through SNS within seconds of an event, checked against 5+ test scenarios.</li>
+      </ul>
+    </details>
+
+    <details class="p2">
+      <summary><div><h3>EDUvault</h3><p>Cloud-based academic storage on AWS EC2, S3, and Google OAuth</p></div><span class="chev" aria-hidden="true">+</span></summary>
+      <ul class="log">
+        <li>Designed and launched a mobile-friendly file platform on Amazon EC2 and S3. It stayed live for one month with 20 users testing it.</li>
+        <li>Secured sign-in with Google OAuth and kept each user’s data isolated.</li>
+        <li>Built uploads up to 2 GB, download, search, sorting by date and size, favourites, recently deleted, recover, and permanent delete.</li>
+        <li>Handled PDF, Word, Excel, PowerPoint, image, and ZIP files with in-browser preview (except ZIP), tested on 10+ files of varied types and sizes.</li>
+      </ul>
+    </details>
+
+    <details class="p3">
+      <summary><div><h3>MERN Travel &amp; Tours Platform</h3><p>O7 Services training project, MERN, MySQL, Nginx, CI/CD</p></div><span class="chev" aria-hidden="true">+</span></summary>
+      <ul class="log">
+        <li>Created a single-page full-stack travel app. The frontend runs through cPanel and the backend API on an Ubuntu server.</li>
+        <li>Set up Nginx as a reverse proxy and PM2 for process management.</li>
+        <li>Automated backend releases with GitHub Actions and a self-hosted runner, cutting deployment from 15-20 minutes to 2-3 minutes.</li>
+      </ul>
+    </details>
+  </div>
+</section>
+
+<section id="test" data-stage>
+  <div class="wrap">
+    <h2>Skills status</h2>
+    <p class="sub">Everything below is something I have used in a project or training lab.</p>
+    <div class="table" role="table" aria-label="Skills">
+      <div class="head mono">kubectl get skills</div>
+      <div class="trow" role="row"><h3>DevOps and tools</h3><ul class="pods"><li>CI/CD</li><li>GitHub Actions</li><li>Git and GitHub</li><li>Kubernetes</li><li>Nginx</li><li>PM2</li><li>Linux (Ubuntu) administration</li></ul></div>
+      <div class="trow" role="row"><h3>AWS</h3><ul class="pods"><li>EC2</li><li>S3</li><li>IAM</li><li>CloudWatch</li><li>CloudTrail</li><li>Lambda</li><li>DynamoDB</li><li>SNS</li></ul></div>
+      <div class="trow" role="row"><h3>Google Cloud</h3><ul class="pods"><li>GKE</li><li>Security Command Center</li><li>Managed Service for Prometheus</li></ul></div>
+      <div class="trow" role="row"><h3>Development</h3><ul class="pods"><li>MERN stack</li><li>REST APIs</li><li>MySQL</li><li>OAuth</li></ul></div>
+      <div class="trow" role="row"><h3>Languages</h3><ul class="pods"><li>English</li><li>Hindi</li><li>Punjabi</li><li>Japanese (basic)</li></ul></div>
+    </div>
+  </div>
+</section>
+
+<section id="proof" data-stage>
+  <div class="wrap">
+    <h2>Proof</h2>
+    <p class="sub">Certifications, a hackathon result, and where I study.</p>
+    <div class="two">
+      <div class="card m">
+        <p class="big">3rd</p>
+        <h3>CyberSpark hackathon</h3>
+        <p style="margin:0">Placed 3rd among about 25 teams in a one-night inter-university hackathon, in a team of 5.</p>
+      </div>
+      <div class="card">
+        <h3>Certifications</h3>
+        <ul>
+          <li>AWS Academy Graduate: Cloud Foundations (training badge)</li>
+          <li>Manage Kubernetes in Google Cloud</li>
+          <li>Mitigate Threats and Vulnerabilities with Security Command Center</li>
+          <li>Monitor Environments with Google Cloud Managed Service for Prometheus</li>
+        </ul>
+      </div>
+      <div class="card l">
+        <h3>Education</h3>
+        <p style="margin:0"><b>GNA University, Phagwara</b><br>B.Tech, Computer Science and Engineering, expected 2027. CGPA 7.17/10 through 6th semester.</p>
+      </div>
+      <div class="card">
+        <h3>School</h3>
+        <p style="margin:0"><b>Army Public School, JRC</b><br>Class XII, CBSE, 2023: 73%.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="deploy" data-stage>
+  <div class="wrap">
+    <div class="deploy">
+      <h2>Deploy me to your team</h2>
+      <p class="sub" style="color:inherit">I am looking for a DevOps internship. Send a message and I will reply.</p>
+      <div class="actions">
+        <a class="btn solid" href="mailto:officialraj777@gmail.com">Email Raj</a>
+        <button class="btn" id="copy" type="button">Copy email</button>
+        <a class="btn" href="https://www.linkedin.com/in/raj-774b54295" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="btn" href="https://github.com/raj5528" target="_blank" rel="noopener">GitHub</a>
+      </div>
+      <div class="term mono" aria-label="Contact details">
+        <p>email &nbsp;&nbsp;officialraj777@gmail.com</p>
+        <p>phone &nbsp;&nbsp;<a href="tel:+917657893787">7657893787</a></p>
+        <p>base &nbsp;&nbsp;&nbsp;Jalandhar, Punjab</p>
+      </div>
+      <p class="mono" id="copied" role="status" style="min-height:1.5em;margin:10px 0 0"></p>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>Raj Acherjee. Pipeline status: passing.</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var stages = Array.prototype.slice.call(document.querySelectorAll(".stage"));
+  var result = document.getElementById("result");
+  var btn = document.getElementById("run");
+  var notes = ["pushed","runner picked up job","process restarted","passed"];
+  var timers = [];
+
+  function setStage(i, state, text){
+    var s = stages[i];
+    s.classList.remove("run-now","pass");
+    if(state) s.classList.add(state);
+    s.querySelector("em").textContent = text;
+  }
+  function reset(){
+    timers.forEach(clearTimeout); timers = [];
+    stages.forEach(function(_, i){ setStage(i, "", "waiting"); });
+    result.classList.remove("show");
+  }
+  function finish(){
+    stages.forEach(function(_, i){ setStage(i, "pass", notes[i]); });
+    result.classList.add("show");
+    btn.disabled = false; btn.textContent = "Run again";
+  }
+  function run(){
+    reset();
+    if(reduce){ finish(); return; }
+    btn.disabled = true; btn.textContent = "Running";
+    stages.forEach(function(_, i){
+      timers.push(setTimeout(function(){ setStage(i, "run-now", "running"); }, i * 800));
+      timers.push(setTimeout(function(){ setStage(i, "pass", notes[i]); }, i * 800 + 700));
+    });
+    timers.push(setTimeout(function(){ finish(); }, stages.length * 800 + 100));
+  }
+  btn.addEventListener("click", run);
+  run();
+
+  // stage nav: current stage is highlighted, earlier ones turn green
+  var secs = Array.prototype.slice.call(document.querySelectorAll("[data-stage]"));
+  var links = Array.prototype.slice.call(document.querySelectorAll("nav a"));
+  function update(){
+    var y = window.scrollY + window.innerHeight * 0.35, cur = 0;
+    secs.forEach(function(s, i){ if(s.offsetTop <= y) cur = i; });
+    if(window.innerHeight + window.scrollY >= document.body.scrollHeight - 4) cur = secs.length - 1;
+    links.forEach(function(a, i){
+      a.classList.toggle("on", i === cur);
+      a.classList.toggle("done", i < cur);
+      if(i === cur) a.setAttribute("aria-current","true"); else a.removeAttribute("aria-current");
+    });
+  }
+  window.addEventListener("scroll", update, {passive:true});
+  window.addEventListener("resize", update);
+  update();
+
+  // copy email
+  var copy = document.getElementById("copy"), msg = document.getElementById("copied");
+  copy.addEventListener("click", function(){
+    var email = "officialraj777@gmail.com";
+    function ok(){ msg.textContent = "Copied: " + email; }
+    function fail(){ msg.textContent = "Copy failed. Select the email above instead."; }
+    try{
+      if(navigator.clipboard && navigator.clipboard.writeText){ navigator.clipboard.writeText(email).then(ok, fail); }
+      else fail();
+    }catch(e){ fail(); }
+  });
+})();
+</script>
+</body>
+</html>
